@@ -1,17 +1,18 @@
 #include "button.h"
 #include <Arduino.h>
 
-void button_setup()
+Button::Button(int pin) 
 {
-    pinMode(PIN_BUTTON, INPUT);
+    m_iPin = pin;
+    pinMode(m_iPin, INPUT);
 }
 
-void button_pullup() 
+void Button::pullup()
 {
-    pinMode(PIN_BUTTON, INPUT_PULLUP);
+    pinMode(m_iPin, INPUT_PULLUP);
 }
 
-int button_pressed() 
+bool Button::pressed()
 {
-    return digitalRead(PIN_BUTTON);
+    return digitalRead(m_iPin) == LOW;
 }

@@ -1,12 +1,19 @@
 #ifndef LED_H
 #define LED_H
 
-#define PIN_LED 13
+class LED
+{
+public:
+    LED(int pin);
 
-void led_setup();
-int led_get_state();
-void led_set_state(int state);
-void led_on();
-void led_off();
+    bool getState();
+    void setState(bool state);
+
+    void turnOn();
+    void turnOff();
+
+private:
+    int m_iPin;
+};
 
 #endif
