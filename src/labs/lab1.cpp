@@ -1,10 +1,14 @@
 #include <Arduino.h>
 #include "drivers/led.h"
-#include "labs/Lab1.h"
+#include "labs/lab1.h"
 #include "util/prompts.h"
+#include "stdio/serial.h"
 
 Lab1::Lab1() 
 {
+    serial_use_stdio();
+    Serial.begin(9600);
+    
     m_Led = new LED(13);
 
     printf("Commands: \n");
