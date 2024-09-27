@@ -12,6 +12,11 @@ public:
     void turnOn();
     void turnOff();
 
+    void toggle();
+
+    bool isOn();
+    bool isOff();
+
 private:
     int m_iPin;
 };

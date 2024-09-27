@@ -12,8 +12,3 @@ void setup()
 {
     USE_LAB(2_1)
 }
-
-void loop()
-{
-    current->loop();
-}

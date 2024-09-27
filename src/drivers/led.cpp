@@ -23,3 +23,15 @@ void LED::turnOn() {
 void LED::turnOff() {
     setState(LOW);
 }
+
+void LED::toggle() {
+    setState(! getState());
+}
+
+bool LED::isOn() {
+    return getState() == HIGH;
+}
+
+bool LED::isOff() {
+    return getState() == LOW;
+}
