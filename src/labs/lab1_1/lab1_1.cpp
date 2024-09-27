@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include "drivers/led.h"
-#include "labs/lab1.h"
+#include "labs/lab1_1/lab1_1.h"
 #include "util/prompts.h"
 #include "stdio/serial.h"
 
-Lab1::Lab1() 
+Lab1_1::Lab1_1() 
 {
     serial_use_stdio();
     Serial.begin(9600);
@@ -17,7 +17,7 @@ Lab1::Lab1()
     printf("\n");
 }
 
-void Lab1::loop() 
+void Lab1_1::loop() 
 {
     char buf[32];
     prompt(NULL, buf, sizeof(buf));

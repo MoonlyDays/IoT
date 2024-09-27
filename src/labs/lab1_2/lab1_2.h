@@ -1,15 +1,15 @@
-#ifndef LAB2_H
-#define LAB2_H
-
 #include "drivers/led.h"
 #include "labs/lab.h"
+
+#ifndef LAB2_H
+#define LAB2_H
 
 #include <Keypad.h>
 #include <LiquidCrystal_I2C.h>
 
-struct Lab2 : Lab
+struct Lab1_2 : Lab
 {
-    Lab2();
+    Lab1_2();
     void loop() override;
 
 private:

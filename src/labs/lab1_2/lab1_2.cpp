@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "labs/lab2.h"
+#include "labs/lab1_2/lab1_2.h"
 
 #define KEYPAD_SIZE 4
 char keys[KEYPAD_SIZE][KEYPAD_SIZE] = {
@@ -24,7 +24,7 @@ byte customChar[] = {
   B11011
 };
 
-Lab2::Lab2() 
+Lab1_2::Lab1_2() 
 {
     Serial.begin(9600);
 
@@ -41,7 +41,7 @@ Lab2::Lab2()
     m_OffLED->turnOn();
 }
 
-void Lab2::loop() 
+void Lab1_2::loop() 
 {
     char key = m_Keypad->getKey();
     if (key) {

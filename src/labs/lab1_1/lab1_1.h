@@ -1,12 +1,12 @@
 #include "drivers/led.h"
 #include "labs/lab.h"
 
-#ifndef LAB1_H
-#define LAB1_H
+#ifndef LAB1_1_H
+#define LAB1_1_H
 
-struct Lab1 : Lab
+struct Lab1_1 : Lab
 {
-    Lab1();
+    Lab1_1();
     void loop() override;
 
 private:

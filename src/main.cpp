@@ -1,7 +1,8 @@
 #include <Arduino.h>
 
-#include "labs/Lab1.h"
-#include "labs/Lab2.h"
+#include "labs/lab1_1/lab1_1.h"
+#include "labs/lab1_2/lab1_2.h"
+#include "labs/lab2_1/lab2_1.h"
 #include "labs/lab.h"
 
 Lab* current;
@@ -9,7 +10,7 @@ Lab* current;
 
 void setup()
 {
-    USE_LAB(2)
+    USE_LAB(2_1)
 }
 
 void loop()
