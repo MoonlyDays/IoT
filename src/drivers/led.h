@@ -1,9 +1,8 @@
 #ifndef LED_H
 #define LED_H
 
-class LED
+struct LED
 {
-public:
     LED(int pin);
 
     bool getState();

@@ -5,12 +5,7 @@
 #include "drivers/potentiometer.h"
 
 #include "stdio/serial.h"
-#include "labs/lab2_1/lab2_1.h"
-
-Task t1(100, lab2_1_task1);
-Task t2(400, lab2_1_task2);
-Task t3(100, lab2_1_task3);
-Task t4(1000, lab2_1_task4);
+#include "labs/lab2_2/lab2_2.h"
 
 LED m_Led1(10);
 LED m_Led2(8);
@@ -19,18 +14,41 @@ Potentiometer m_Potentiometer(A1);
 
 bool m_bButtonWasPressed;
 
-void lab2_1_setup() 
+void lab2_2_setup() 
 {
     Serial.begin(9600);
     serial_use_stdio();
 
-    SoftTimer.add(&t1);
-    SoftTimer.add(&t2);
-    SoftTimer.add(&t3);
-    SoftTimer.add(&t4);
+    xTaskCreate(
+        lab2_2_task1,
+        "lab2_2_task1",
+        128, NULL,
+        2, NULL
+    );
+
+    xTaskCreate(
+        lab2_2_task2,
+        "lab2_2_task2",
+        128, NULL,
+        2, NULL
+    );
+
+    xTaskCreate(
+        lab2_2_task3,
+        "lab2_2_task3",
+        128, NULL,
+        2, NULL
+    );
+
+    xTaskCreate(
+        lab2_2_task4,
+        "lab2_2_task4",
+        128, NULL,
+        2, NULL
+    );
 }
 
-void lab2_1_task1(Task* me) {
+void lab2_2_task1(void *arg) {
     if(m_Button.pressed()) {
         m_bButtonWasPressed = true;
         m_Led1.toggle();
@@ -39,19 +57,18 @@ void lab2_1_task1(Task* me) {
     m_Button.rememberState();
 }
 
-void lab2_1_task2(Task* me) {
+void lab2_2_task2(void *arg) {
     if(m_Led1.isOff()) {
         m_Led2.toggle();
     }
 }
 
-void lab2_1_task3(Task* me) {
+void lab2_2_task3(void *arg) {
     int ms = m_Potentiometer.read();
     ms += map(ms, 0, 1024, 100, 1000);
-    t2.setPeriodMs(ms);
 }
 
-void lab2_1_task4(Task* me) {
+void lab2_2_task4(void *arg) {
     printf(
         "LED1: %s, LED2: %s\n", 
         m_Led1.isOn()   ? "ON" : "OFF",

@@ -1,9 +1,8 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-class Button
+struct Button
 {
-public:
     Button(int pin);
     void pullup();
     

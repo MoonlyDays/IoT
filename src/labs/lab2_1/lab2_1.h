@@ -1,12 +1,13 @@
-#include "labs/lab.h"
-
 #ifndef LAB2_1_H
 #define LAB2_1_H
 
-struct Lab2_1 : Lab
-{
-    Lab2_1();
-    void loop() override;
-};
+#include <SoftTimer.h>
+
+void lab2_1_setup();
+
+void lab2_1_task1(Task* me);
+void lab2_1_task2(Task* me);
+void lab2_1_task3(Task* me);
+void lab2_1_task4(Task* me);
 
 #endif

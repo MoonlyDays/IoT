@@ -1,28 +1,9 @@
 #include "drivers/led.h"
-#include "labs/lab.h"
 
 #ifndef LAB2_H
 #define LAB2_H
 
-#include <Keypad.h>
-#include <LiquidCrystal_I2C.h>
-
-struct Lab1_2 : Lab
-{
-    Lab1_2();
-    void loop() override;
-
-private:
-    void UpdateLEDState();
-
-    Keypad* m_Keypad;
-    LiquidCrystal_I2C* m_LCD;
-
-    LED* m_OnLED;
-    LED* m_OffLED;
-
-    char m_szCode[16] = "";
-    int m_nLength = 0;
-};
+void lab1_2_setup();
+void lab1_2_loop();
 
 #endif

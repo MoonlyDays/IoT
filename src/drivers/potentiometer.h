@@ -2,11 +2,11 @@
 #ifndef POTENTIOMETER_H
 #define POTENTIOMETER_H
 
-class Potentiometer
+struct Potentiometer
 {
-public:
     Potentiometer(int pin);
     int read();
+    
 private:
     int m_iPin;
 };
