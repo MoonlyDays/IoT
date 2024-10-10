@@ -91,23 +91,3 @@ void Lab2_2::task4()
         vTaskDelay(100);
     }
 }
-
-void lab2_2_task1(void *arg)
-{
-    static_cast<Lab2_2 *>(current)->task1();
-}
-
-void lab2_2_task2(void *arg)
-{
-    static_cast<Lab2_2 *>(current)->task2();
-}
-
-void lab2_2_task3(void *arg)
-{
-    static_cast<Lab2_2 *>(current)->task3();
-}
-
-void lab2_2_task4(void *arg)
-{
-    static_cast<Lab2_2 *>(current)->task4();
-}
