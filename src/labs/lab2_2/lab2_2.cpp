@@ -1,82 +1,113 @@
-#include <Arduino.h>
-
-#include "drivers/led.h"
-#include "drivers/button.h"
-#include "drivers/potentiometer.h"
-
-#include "stdio/serial.h"
 #include "labs/lab2_2/lab2_2.h"
 
-LED m_Led1(10);
-LED m_Led2(8);
-Button m_Button(2);
-Potentiometer m_Potentiometer(A1);
+#include <Arduino.h>
+#include "stdio/serial.h"
 
-bool m_bButtonWasPressed;
-
-void lab2_2_setup() 
+Lab2_2::Lab2_2()
 {
+    // Initialize serial communication at 9600 baud rate
     Serial.begin(9600);
     serial_use_stdio();
+
+    m_Led1 = new LED(10);
+    m_Led2 = new LED(8);
+    m_Button = new Button(2);
+    m_Potentiometer = new Potentiometer(A1);
 
     xTaskCreate(
         lab2_2_task1,
         "lab2_2_task1",
         128, NULL,
-        2, NULL
-    );
+        2, NULL);
 
     xTaskCreate(
         lab2_2_task2,
         "lab2_2_task2",
         128, NULL,
-        2, NULL
-    );
+        2, NULL);
 
     xTaskCreate(
         lab2_2_task3,
         "lab2_2_task3",
         128, NULL,
-        2, NULL
-    );
+        2, NULL);
 
     xTaskCreate(
         lab2_2_task4,
         "lab2_2_task4",
         128, NULL,
-        2, NULL
-    );
+        2, NULL);
 }
 
-void lab2_2_task1(void *arg) {
-    if(m_Button.pressed()) {
-        m_bButtonWasPressed = true;
-        m_Led1.toggle();
+void Lab2_2::task1()
+{
+    while (1)
+    {
+        if (m_Button->pressed())
+        {
+            // m_bButtonWasPressed = true;
+            m_Led1->toggle();
+        }
+
+        m_Button->rememberState();
+
+        vTaskDelay(100);
     }
-
-    m_Button.rememberState();
 }
 
-void lab2_2_task2(void *arg) {
-    if(m_Led1.isOff()) {
-        m_Led2.toggle();
+void Lab2_2::task2()
+{
+    while (1)
+    {
+        if (m_Led1->isOff())
+        {
+            m_Led2->toggle();
+        }
+
+        vTaskDelay(100);
     }
 }
 
-void lab2_2_task3(void *arg) {
-    int ms = m_Potentiometer.read();
-    ms += map(ms, 0, 1024, 100, 1000);
+void Lab2_2::task3()
+{
+    while (1)
+    {
+        int ms = m_Potentiometer->read();
+        ms += map(ms, 0, 1024, 100, 1000);
+
+        vTaskDelay(100);
+    }
 }
 
-void lab2_2_task4(void *arg) {
-    printf(
-        "LED1: %s, LED2: %s\n", 
-        m_Led1.isOn()   ? "ON" : "OFF",
-        m_Led1.isOff()  ? "ON" : "OFF"
-    );
+void Lab2_2::task4()
+{
+    while (1)
+    {
+        printf(
+            "LED1: %s, LED2: %s\n",
+            m_Led1->isOn() ? "ON" : "OFF",
+            m_Led1->isOff() ? "ON" : "OFF");
 
-    if(m_bButtonWasPressed) {
-        m_bButtonWasPressed = false;
-        printf("BUTTON WAS PRESSED\n");
+        vTaskDelay(100);
     }
+}
+
+void lab2_2_task1(void *arg)
+{
+    static_cast<Lab2_2 *>(current)->task1();
+}
+
+void lab2_2_task2(void *arg)
+{
+    static_cast<Lab2_2 *>(current)->task2();
+}
+
+void lab2_2_task3(void *arg)
+{
+    static_cast<Lab2_2 *>(current)->task3();
+}
+
+void lab2_2_task4(void *arg)
+{
+    static_cast<Lab2_2 *>(current)->task4();
 }

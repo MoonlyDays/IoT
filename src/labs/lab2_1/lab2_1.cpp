@@ -1,65 +1,83 @@
-#include <Arduino.h>
-
-#include "drivers/led.h"
-#include "drivers/button.h"
-#include "drivers/potentiometer.h"
-
-#include "stdio/serial.h"
 #include "labs/lab2_1/lab2_1.h"
 
-Task t1(100, lab2_1_task1);
-Task t2(400, lab2_1_task2);
-Task t3(100, lab2_1_task3);
-Task t4(1000, lab2_1_task4);
+#include "Arduino.h"
+#include "stdio/serial.h"
 
-LED m_Led1(10);
-LED m_Led2(8);
-Button m_Button(2);
-Potentiometer m_Potentiometer(A1);
-
-bool m_bButtonWasPressed;
-
-void lab2_1_setup() 
+Lab2_1::Lab2_1()
 {
+    // Initialize serial communication at 9600 baud rate
     Serial.begin(9600);
     serial_use_stdio();
 
-    SoftTimer.add(&t1);
-    SoftTimer.add(&t2);
-    SoftTimer.add(&t3);
-    SoftTimer.add(&t4);
+    m_Led1 = new LED(10);
+    m_Led2 = new LED(8);
+    m_Button = new Button(2);
+    m_Potentiometer = new Potentiometer(A1);
+
+    m_T1 = new Task(100, lab2_1_task1);
+    m_T2 = new Task(400, lab2_1_task2);
+    m_T3 = new Task(100, lab2_1_task3);
+    m_T4 = new Task(1000, lab2_1_task4);
+
+    // Add tasks to the SoftTimer scheduler
+    SoftTimer.add(m_T1);
+    SoftTimer.add(m_T2);
+    SoftTimer.add(m_T3);
+    SoftTimer.add(m_T4);
 }
 
-void lab2_1_task1(Task* me) {
-    if(m_Button.pressed()) {
+void Lab2_1::task1()
+{
+    if (m_Button->pressed())
+    {
         m_bButtonWasPressed = true;
-        m_Led1.toggle();
+        m_Led1->toggle();
     }
 
-    m_Button.rememberState();
+    m_Button->rememberState();
 }
 
-void lab2_1_task2(Task* me) {
-    if(m_Led1.isOff()) {
-        m_Led2.toggle();
+void Lab2_1::task2()
+{
+    if (m_Led1->isOff())
+    {
+        m_Led2->toggle();
     }
 }
 
-void lab2_1_task3(Task* me) {
-    int ms = m_Potentiometer.read();
+void Lab2_1::task3()
+{
+    int ms = m_Potentiometer->read();
     ms += map(ms, 0, 1024, 100, 1000);
-    t2.setPeriodMs(ms);
+    m_T2->setPeriodMs(ms);
 }
 
-void lab2_1_task4(Task* me) {
+void Lab2_1::task4()
+{
     printf(
-        "LED1: %s, LED2: %s\n", 
-        m_Led1.isOn()   ? "ON" : "OFF",
-        m_Led1.isOff()  ? "ON" : "OFF"
-    );
+        "LED1: %s, LED2: %s\n",
+        m_Led1->isOn() ? "ON" : "OFF",
+        m_Led1->isOff() ? "ON" : "OFF");
 
-    if(m_bButtonWasPressed) {
+    if (m_bButtonWasPressed)
+    {
         m_bButtonWasPressed = false;
         printf("BUTTON WAS PRESSED\n");
     }
+}
+
+void lab2_1_task1(Task* me) {
+    static_cast<Lab2_1*>(current)->task1();
+}
+
+void lab2_1_task2(Task* me) {
+    static_cast<Lab2_1*>(current)->task2();
+}
+
+void lab2_1_task3(Task* me) {
+    static_cast<Lab2_1*>(current)->task3();
+}
+
+void lab2_1_task4(Task* me) {
+    static_cast<Lab2_1*>(current)->task4();
 }

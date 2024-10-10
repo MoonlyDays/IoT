@@ -6,7 +6,7 @@ struct Potentiometer
 {
     Potentiometer(int pin);
     int read();
-    
+
 private:
     int m_iPin;
 };
