@@ -44,6 +44,8 @@ void task1(void *arg)
 {
     for (;;)
     {
+        vTaskDelay(pdMS_TO_TICKS(1000));
+
         if (m_Button.pressed())
         {
             if (m_Led1.isOff())
