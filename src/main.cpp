@@ -15,11 +15,13 @@ Potentiometer m_Potentiometer(A1);
 
 QueueHandle_t m_xLed1TurnedOn;
 QueueHandle_t m_xLed2Interval;
+QueueHandle_t m_xButtonPressed;
 int m_iLed2Interval = 500;
 
 void task1(void *arg);
 void task2(void *arg);
 void task3(void *arg);
+void task4(void *arg);
 
 void setup()
 {
@@ -30,15 +32,17 @@ void setup()
     xSemaphoreGive(m_xLed2Interval);
     m_xLed1TurnedOn = xSemaphoreCreateBinary();
     xSemaphoreGive(m_xLed1TurnedOn);
+    m_xButtonPressed = xSemaphoreCreateBinary();
 
     xTaskCreate(task1, "task1", 128, NULL, 2, NULL);
     xTaskCreate(task2, "task2", 128, NULL, 2, NULL);
     xTaskCreate(task3, "task3", 128, NULL, 2, NULL);
+    xTaskCreate(task4, "task4", 128, NULL, 2, NULL);
 }
 
 void task1(void *arg)
 {
-    while (1)
+    for (;;)
     {
         if (m_Button.pressed())
         {
@@ -56,6 +60,8 @@ void task1(void *arg)
                 xSemaphoreGive(m_xLed1TurnedOn);
                 m_Led1.turnOff();
             }
+
+            xSemaphoreGive(m_xButtonPressed);
         }
 
         m_Button.rememberState();
@@ -65,7 +71,7 @@ void task1(void *arg)
 
 void task2(void *arg)
 {
-    while (1)
+    for (;;)
     {
         if (xSemaphoreTake(m_xLed1TurnedOn, 5) == pdTRUE)
         {
@@ -73,29 +79,32 @@ void task2(void *arg)
             xSemaphoreGive(m_xLed1TurnedOn);
         }
 
-        if (xSemaphoreTake(m_xLed2Interval, 0) == pdTRUE)
-        {
-            printf("delayed for %d\n", m_iLed2Interval);
-            vTaskDelay(pdMS_TO_TICKS(m_iLed2Interval));
-            xSemaphoreGive(m_xLed1TurnedOn);
-        } e
+        vTaskDelay(pdMS_TO_TICKS(m_iLed2Interval));
     }
 }
 
 void task3(void *arg)
 {
-    int ms = m_Potentiometer.read();
-    if (ms == m_iLed2Interval)
+    for (;;)
     {
-        return;
-    }
+        int ms = m_Potentiometer.read();
+        if (ms == m_iLed2Interval)
+        {
+            return;
+        }
 
-    if (xSemaphoreTake(m_xLed2Interval, 0) == pdTRUE)
-    {
-        printf("Updated update interval: %dms\n", m_iLed2Interval);
         m_iLed2Interval = ms;
-        xSemaphoreGive(m_xLed2Interval);
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
-    
-    vTaskDelay(pdMS_TO_TICKS(100));
+}
+
+void task4(void *arg)
+{
+    for (;;)
+    {
+        if (xSemaphoreTake(m_xButtonPressed, portMAX_DELAY) == pdTRUE)
+        {
+            printf("Button was pressed!\n");
+        }
+    }
 }
