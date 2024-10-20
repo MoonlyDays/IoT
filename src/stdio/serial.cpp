@@ -10,15 +10,7 @@ int __serial_putchar(char c, FILE* file)
 int __serial_getchar(FILE* f)
 {
     while( !Serial.available());
-    int c = Serial.read();
-
-    if(c == 8) {
-        printf("\b \b");
-        return c;
-    }
-
-    printf("%c", c);
-    return c;
+    return Serial.read();
 }
 
 void serial_use_stdio()
