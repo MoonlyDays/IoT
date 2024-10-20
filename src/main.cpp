@@ -1,36 +1,26 @@
 #include <Arduino.h>
-#include <DHT.h>
-#include <DHT_U.h>
+#include <Wire.h>
 
-#include "stdio/serial.h"
-#include "util/macro.h"
+#include <Adafruit_ADXL345_U.h>
 
-#define PIN 8
-#define TYPE DHT11
-
-DHT_Unified dht(PIN, TYPE);
+Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
 
 void setup()
 {
     Serial.begin(9600);
-    serial_use_stdio();
-    dht.begin();
+    accel.begin();
+    accel.setRange(ADXL345_RANGE_16_G);
 }
 
-void loop()
+void loop(void) 
 {
-    delay(1000);
-
-    sensors_event_t event;
-    dht.temperature().getEvent(&event);
-    float fTemp = event.temperature;
-    dht.humidity().getEvent(&event);
-    float fHum = event.relative_humidity;
-    if (isnan(fTemp) || isnan(fHum))
-    {
-        printf("Error reading temperature!\n");
-        return;
-    }
-
-    printf("Temp = %d C, Humidity = %d %%\n", R(fTemp), R(fHum));
+  /* Get a new sensor event */ 
+  sensors_event_t event; 
+  accel.getEvent(&event);
+ 
+  /* Display the results (acceleration is measured in m/s^2) */
+  Serial.print("X: "); Serial.print(event.acceleration.x); Serial.print("  ");
+  Serial.print("Y: "); Serial.print(event.acceleration.y); Serial.print("  ");
+  Serial.print("Z: "); Serial.print(event.acceleration.z); Serial.print("  ");Serial.println("m/s^2 ");
+  delay(500);
 }
