@@ -1,20 +1,36 @@
 #include <Arduino.h>
-#include <HCSR04.h>
+#include <DHT.h>
+#include <DHT_U.h>
 
 #include "stdio/serial.h"
+#include "util/macro.h"
 
-UltraSonicDistanceSensor m_DistanceSensor(9, 10);
+#define PIN 8
+#define TYPE DHT11
+
+DHT_Unified dht(PIN, TYPE);
 
 void setup()
 {
     Serial.begin(9600);
     serial_use_stdio();
+    dht.begin();
 }
 
 void loop()
 {
-    double fDistance = m_DistanceSensor.measureDistanceCm(25.0);
-    int iDistance = (int)round(fDistance);
-    printf("%d cm\n", iDistance);
-    delay(200);
+    delay(1000);
+
+    sensors_event_t event;
+    dht.temperature().getEvent(&event);
+    float fTemp = event.temperature;
+    dht.humidity().getEvent(&event);
+    float fHum = event.relative_humidity;
+    if (isnan(fTemp) || isnan(fHum))
+    {
+        printf("Error reading temperature!\n");
+        return;
+    }
+
+    printf("Temp = %d C, Humidity = %d %%\n", R(fTemp), R(fHum));
 }

@@ -1,0 +1,1 @@
+#define R(x) ((int)round(x))
