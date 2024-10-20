@@ -44,21 +44,22 @@ void task1(void *arg)
 {
     for (;;)
     {
-        vTaskDelay(pdMS_TO_TICKS(1000));
-
         if (m_Button.pressed())
         {
+            printf("m_Button.pressed()\n");
             if (m_Led1.isOff())
             {
-                if (xSemaphoreTake(m_xLed1TurnedOn, 5) == pdTRUE)
+                printf("m_Led1.isOff()\n");
+                if (xSemaphoreTake(m_xLed1TurnedOn, portMAX_DELAY) == pdTRUE)
                 {
-                    printf("LED 1 turned on.\n");
+                    printf("m_Led1.turnOn()\n");
                     m_Led1.turnOn();
                 }
             }
             else
             {
-                printf("LED 1 turned off.\n");
+                printf("!m_Led1.isOff()\n");
+                printf("!m_Led1.turnOff()\n");
                 xSemaphoreGive(m_xLed1TurnedOn);
                 m_Led1.turnOff();
             }
@@ -77,8 +78,8 @@ void task2(void *arg)
     {
         if (xSemaphoreTake(m_xLed1TurnedOn, 5) == pdTRUE)
         {
+            printf("!m_Led1.turnOff()\n");
             m_Led2.toggle();
-            xSemaphoreGive(m_xLed1TurnedOn);
         }
 
         vTaskDelay(pdMS_TO_TICKS(m_iLed2Interval));
@@ -108,5 +109,7 @@ void task4(void *arg)
         {
             printf("Button was pressed!\n");
         }
+
+        vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
