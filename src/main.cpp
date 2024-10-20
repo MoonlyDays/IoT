@@ -8,15 +8,24 @@
 
 #include "stdio/serial.h"
 
-LED m_Led1(10);
-LED m_Led2(8);
-Button m_Button(2);
-Potentiometer m_Potentiometer(A1);
+#define LED1_PIN 10
+#define LED2_PIN 8
+#define BUTTON_PIN 2
+#define POTENTIOMETER_PIN A1
 
-QueueHandle_t m_xLed1TurnedOn;
-QueueHandle_t m_xLed2Interval;
+#define POTENTIOMETER_MIN_VALUE 0
+#define POTENTIOMETER_MAX_VALUE 1024
+#define TASK2_MIN_MS 100
+#define TASK2_MAX_MS 1000
+
+LED m_Led1(LED1_PIN);
+LED m_Led2(LED2_PIN);
+Button m_Button(BUTTON_PIN);
+Potentiometer m_Potentiometer(POTENTIOMETER_PIN);
+
+float m_iTask2Ticks = 500;
+bool m_bButtonPressed;
 QueueHandle_t m_xButtonPressed;
-int m_iLed2Interval = 500;
 
 void task1(void *arg);
 void task2(void *arg);
@@ -28,47 +37,42 @@ void setup()
     Serial.begin(9600);
     serial_use_stdio();
 
-    m_xLed2Interval = xSemaphoreCreateBinary();
-    xSemaphoreGive(m_xLed2Interval);
-    m_xLed1TurnedOn = xSemaphoreCreateBinary();
-    xSemaphoreGive(m_xLed1TurnedOn);
     m_xButtonPressed = xSemaphoreCreateBinary();
 
     xTaskCreate(task1, "task1", 128, NULL, 2, NULL);
     xTaskCreate(task2, "task2", 128, NULL, 2, NULL);
     xTaskCreate(task3, "task3", 128, NULL, 2, NULL);
-    xTaskCreate(task4, "task4", 128, NULL, 2, NULL);
+    vTaskStartScheduler();
 }
 
 void task1(void *arg)
 {
     for (;;)
     {
-        if (m_Button.pressed())
+        if (m_Button.down())
         {
-            printf("m_Button.pressed()\n");
-            if (m_Led1.isOff())
+            if (!m_bButtonPressed)
             {
-                printf("m_Led1.isOff()\n");
-                if (xSemaphoreTake(m_xLed1TurnedOn, portMAX_DELAY) == pdTRUE)
+                vTaskDelay(pdMS_TO_TICKS(50));
+                if (m_Button.down())
                 {
-                    printf("m_Led1.turnOn()\n");
-                    m_Led1.turnOn();
+                    m_Led1.toggle();
+
+                    xSemaphoreGive(m_xButtonPressed);
+                    if(m_Led1.isOn()) {
+                        xSemaphoreTake(m_xButtonPressed, portMAX_DELAY);
+                    } else {
+                        xSemaphoreGive(m_xButtonPressed);
+                    }
                 }
             }
-            else
-            {
-                printf("!m_Led1.isOff()\n");
-                printf("!m_Led1.turnOff()\n");
-                xSemaphoreGive(m_xLed1TurnedOn);
-                m_Led1.turnOff();
-            }
-
-            xSemaphoreGive(m_xButtonPressed);
+        }
+        else
+        {
+            m_bButtonPressed = false;
         }
 
-        m_Button.rememberState();
-        vTaskDelay(pdMS_TO_TICKS(100));
+        vTaskDelay(pdMS_TO_TICKS(50));
     }
 }
 
@@ -76,40 +80,26 @@ void task2(void *arg)
 {
     for (;;)
     {
-        if (xSemaphoreTake(m_xLed1TurnedOn, 5) == pdTRUE)
-        {
-            printf("!m_Led1.turnOff()\n");
-            m_Led2.toggle();
-        }
-
-        vTaskDelay(pdMS_TO_TICKS(m_iLed2Interval));
-    }
-}
-
-void task3(void *arg)
-{
-    for (;;)
-    {
-        int ms = m_Potentiometer.read();
-        if (ms == m_iLed2Interval)
-        {
-            return;
-        }
-
-        m_iLed2Interval = ms;
-        vTaskDelay(pdMS_TO_TICKS(100));
-    }
-}
-
-void task4(void *arg)
-{
-    for (;;)
-    {
         if (xSemaphoreTake(m_xButtonPressed, portMAX_DELAY) == pdTRUE)
         {
-            printf("Button was pressed!\n");
+            m_Led2.toggle();
+            xSemaphoreGive(m_xButtonPressed);
         }
-
-        vTaskDelay(pdMS_TO_TICKS(100));
+        
+        vTaskDelay(pdMS_TO_TICKS(m_iTask2Ticks));
     }
+}
+
+void task3(void* arg) {
+
+    for(;;)
+    {
+        int value = m_Potentiometer.read();
+        m_iTask2Ticks = map(
+            value,
+            POTENTIOMETER_MIN_VALUE, POTENTIOMETER_MAX_VALUE,
+            TASK2_MIN_MS, TASK2_MAX_MS
+        );
+    }
+
 }
