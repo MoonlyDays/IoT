@@ -2,12 +2,13 @@
 
 #include "drivers/relay.h"
 #include "drivers/motor.h"
+#include "drivers/potentiometer.h"
 
-#define RELAY_PIN 7
-#define MOTOR_PINA 5
-#define MOTOR_PINB 6
+#define MOTOR_PINA A2
+#define MOTOR_PINB A3
+#define PMETER_PIN A4
 
-Relay m_Relay(RELAY_PIN);
+Potentiometer m_Potentiometer(PMETER_PIN);
 Motor m_Motor(MOTOR_PINA, MOTOR_PINB);
 
 void setup()
@@ -17,17 +18,7 @@ void setup()
 
 void loop()
 {
-    if (Serial.available())
-    {
-        char cmd = Serial.read();
-        if (cmd == '1')
-        {
-            m_Relay.turnOn();
-        }
-
-        if (cmd == '0')
-        {
-            m_Relay.turnOff();
-        }
-    }
+    int value = m_Potentiometer.read();
+    int power = map(value, 0, 1023, -100, 100);
+    m_Motor.setSpeed(power);
 }
