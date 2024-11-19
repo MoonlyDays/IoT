@@ -1,35 +1,33 @@
 #include <Arduino.h>
-#include <HCSR04.h>
 
-#include "stdio/serial.h"
-#include "filters/sap.h"
-#include "filters/avg.h"
+#include "drivers/relay.h"
+#include "drivers/motor.h"
 
-#define PIN1 9
-#define PIN2 10
-#define TEMP 20.0
+#define RELAY_PIN 7
+#define MOTOR_PINA 5
+#define MOTOR_PINB 6
 
-UltraSonicDistanceSensor m_DistanceSensor(PIN1, PIN2);
-SATFilter m_SATFilter;
-AVGFilter m_AVGFilter;
+Relay m_Relay(RELAY_PIN);
+Motor m_Motor(MOTOR_PINA, MOTOR_PINB);
 
 void setup()
 {
     Serial.begin(9600);
-    serial_use_stdio();
 }
 
-void loop(void) 
+void loop()
 {
-    double fDistance = m_DistanceSensor.measureDistanceCm(TEMP);
-    m_SATFilter.push(fDistance);
-    m_AVGFilter.push(fDistance);
+    if (Serial.available())
+    {
+        char cmd = Serial.read();
+        if (cmd == '1')
+        {
+            m_Relay.turnOn();
+        }
 
-    m_SATFilter.m_bFilled
-        ? printf("SAT> Filtered: %.2f", m_SATFilter.output())
-        : printf("SAT> Collecting data...");
-
-    m_AVGFilter.m_bFilled
-        ? printf("AVG> Filtered: %.2f", m_AVGFilter.output())
-        : printf("AVG> Collecting data...");
+        if (cmd == '0')
+        {
+            m_Relay.turnOff();
+        }
+    }
 }

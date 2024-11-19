@@ -1,9 +1,9 @@
 #ifndef BUTTON_H
 #define BUTTON_H
 
-struct Button
+struct Motor
 {
-    Button(int pin);
+    Motor(int pin);
 
     bool down();
     bool up();
