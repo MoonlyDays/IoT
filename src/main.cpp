@@ -1,28 +1,31 @@
 #include <Arduino.h>
-#include <Wire.h>
+#include <HCSR04.h>
+
 #include "stdio/serial.h"
+#include "filters/sap.h"
+#include "filters/avg.h"
 
-#include <Adafruit_ADXL345_U.h>
-
-Adafruit_ADXL345_Unified accel = Adafruit_ADXL345_Unified(12345);
+UltraSonicDistanceSensor m_DistanceSensor(9, 10);
+SATFilter m_SATFilter;
+AVGFilter m_AVGFilter;
 
 void setup()
 {
     Serial.begin(9600);
     serial_use_stdio();
-
-    accel.begin();
-    accel.setRange(ADXL345_RANGE_16_G);
 }
 
 void loop(void) 
 {
-  sensors_event_t event; 
-  accel.getEvent(&event);
- 
-  printf("X: %.2f ", event.acceleration.x);
-  printf("Y: %.2f ", event.acceleration.y);
-  printf("Z: %.2f ", event.acceleration.z);
-  
-  delay(500);
+    double fDistance = m_DistanceSensor.measureDistanceCm(20.0);
+    m_SATFilter.push(fDistance);
+    m_AVGFilter.push(fDistance);
+
+    m_SATFilter.m_bFilled
+        ? printf("SAT> Filtered: %.2f", m_SATFilter.output())
+        : printf("SAT> Collecting data...");
+
+    m_AVGFilter.m_bFilled
+        ? printf("AVG> Filtered: %.2f", m_AVGFilter.output())
+        : printf("AVG> Collecting data...");
 }
