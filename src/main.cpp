@@ -5,7 +5,11 @@
 #include "filters/sap.h"
 #include "filters/avg.h"
 
-UltraSonicDistanceSensor m_DistanceSensor(9, 10);
+#define PIN1 9
+#define PIN2 10
+#define TEMP 20.0
+
+UltraSonicDistanceSensor m_DistanceSensor(PIN1, PIN2);
 SATFilter m_SATFilter;
 AVGFilter m_AVGFilter;
 
@@ -17,7 +21,7 @@ void setup()
 
 void loop(void) 
 {
-    double fDistance = m_DistanceSensor.measureDistanceCm(20.0);
+    double fDistance = m_DistanceSensor.measureDistanceCm(TEMP);
     m_SATFilter.push(fDistance);
     m_AVGFilter.push(fDistance);
 
