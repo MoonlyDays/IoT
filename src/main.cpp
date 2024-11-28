@@ -4,7 +4,6 @@
 #include "util/prompts.h"
 #include "stdio/serial.h"
 #include "drivers/relay.h"
-#include "drivers/led.h"
 
 #define LCD_COLS 20
 #define LCD_ROWS 4
