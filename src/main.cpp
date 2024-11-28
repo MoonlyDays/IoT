@@ -1,18 +1,16 @@
 #include <Arduino.h>
-#include <L298N.h>
+#include <LiquidCrystal_I2C.h>
 
 #include "stdio/serial.h"
 #include "util/prompts.h"
-#include "drivers/relay.h"
-#include "drivers/potentiometer.h"
+#include "drivers/motor.h"
 
-#define LCD_COLS 20
-#define LCD_ROWS 4
-#define MOTOR_PIN1 7
-#define MOTOR_PIN2 8
+#define ENA 8
+#define IN1 7
+#define IN2 6
 
-LiquidCrystal_I2C m_LCD(0x27, LCD_COLS, LCD_ROWS);
-L298N m_Motor(MOTOR_PIN1, MOTOR_PIN2);
+LiquidCrystal_I2C m_LCD(0x27, 20, 4);
+Motor m_Motor(ENA, IN1, IN2);
 
 void setup()
 {
@@ -38,7 +36,6 @@ void loop()
         if(speed < -100)  speed = -100;
         if(speed > 100)   speed = 100;
 
-        speed = map(speed, -100, 100, 0, 0xFF);
         m_Motor.setSpeed(speed);
 
         printf("Changing MOTOR speed to %d\n", speed);
