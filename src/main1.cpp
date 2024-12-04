@@ -1,44 +1,45 @@
-#include <Wire.h>                // Подключение библиотеки для работы с I2C
-#include <Arduino.h>              // Подключение библиотеки Arduino
-#include <HCSR04.h>               // Подключение библиотеки для работы с ультразвуковыми датчиками расстояния
+#include <Wire.h>
+#include <Arduino.h>
+#include <HCSR04.h>
 
-#include "stdio/serial.h"         // Подключение библиотеки для работы с сериалом
+#include "util/protocol.h"
+#include "stdio/serial.h"
 
-#define I2C_ADDRESS 8            // Адрес ведомого устройства (MCU2), на который будут отправляться данные
+#define I2C_ADDRESS 8
 
-#define USS_PIN1 9               // Пин для TRIGGER на датчике расстояния
-#define USS_PIN2 10              // Пин для ECHO на датчике расстояния
+#define USS_PIN1 9
+#define USS_PIN2 10
 
-// Создание объекта для работы с датчиком расстояния, используя пины для TRIGGER и ECHO
 UltraSonicDistanceSensor m_DistanceSensor(USS_PIN1, USS_PIN2);
 
 void setup()
 {
-    // Настройка скорости передачи данных через последовательный порт для отладки
     stdio_to_serial(9600);
-
-    // Инициализация шины I2C (будем использовать адрес I2C_ADDRESS для ведомого устройства)
-    Wire.begin();
+    Wire.begin(I2C_ADDRESS);
+    Wire.onReceive(receiveData);
 }
 
-void loop()
+void receiveData(int byteCount)
 {
-    // Измерение расстояния с помощью датчика. Значение 25 - это максимальное расстояние в см,
-    // на котором будет измеряться расстояние.
+    char buffer[PROTOCOL_MSG_LEN];
+    Wire.readBytes(buffer, sizeof(buffer));
+
+    CmdProtocol protocol;
+    if (!deserialize(buffer, &protocol))
+        return;
+
+    switch (protocol.m_eCommand)
+    {
+    case CMD_REQUEST_METRICS:
+        sendMetrics();
+        break;
+    }
+}
+
+void sendMetrics()
+{
     long distance = m_DistanceSensor.measureDistanceCm(25);
-
-    // Начало передачи данных на ведомое устройство по I2C
-    Wire.beginTransmission(I2C_ADDRESS);  // Начинаем передачу данных на устройство с адресом I2C_ADDRESS
-
-    // Отправляем измеренное расстояние (в см)
-    Wire.write(distance);  // Преобразуем расстояние в байт и отправляем
-
-    // Заканчиваем передачу данных
-    Wire.endTransmission();  // Завершаем передачу данных
-
-    // Для отладки выводим измеренное расстояние в сериал порт
-    printf("Distance: %d cm\n", distance);
-
-    // Задержка в 1 секунду между измерениями
-    delay(1000);  // Задержка 1000 миллисекунд (1 секунда)
+    Wire.beginTransmission(I2C_ADDRESS);
+    Wire.write(distance);
+    Wire.endTransmission();
 }

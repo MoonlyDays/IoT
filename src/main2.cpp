@@ -1,38 +1,48 @@
-#include <Wire.h>               // Подключение библиотеки для работы с I2C
-#include <Arduino.h>             // Подключение основной библиотеки Arduino
+#include <Wire.h>
+#include <Arduino.h>
 
-#include "stdio/serial.h"        // Подключение библиотеки для работы с сериалом
+#include "stdio/serial.h"
+#include "util/protocol.h"
 
-#define I2C_ADDRESS 8           // Устанавливаем I2C-адрес для этого устройства (ведомого устройства)
+#define I2C_ADDRESS 8
 
-int receivedDistance = 0;       // Переменная для хранения полученного расстояния (в см)
+int receivedDistance = 0;
+int lastPacket = 0;
 
 void setup()
 {
-    // Настройка последовательной передачи данных для отладки
-    stdio_to_serial(9600); 
-
-    // Инициализация шины I2C в режиме ведомого с указанным адресом
-    Wire.begin(I2C_ADDRESS); 
-    
-    // Настройка функции обработки полученных данных по I2C
-    Wire.onReceive(receiveData); 
+    stdio_to_serial(9600);
+    Wire.begin(I2C_ADDRESS);
+    Wire.onReceive(receiveData);
 }
 
 void loop()
 {
-    // Отправка полученного расстояния в сериал порт для отладки
-    printf("Distance: %dcm\n", receivedDistance); 
-    delay(1000);  // Задержка в 1 секунду между выводами
+    requestData();
+    delay(5000);
 }
 
-// Эта функция будет вызываться при получении данных по I2C
+void requestData()
+{
+    CmdProtocol protocol;
+    protocol.m_iID = lastPacket++;
+    protocol.m_iEmiterID = 2;
+    protocol.m_iSenderID = 1;
+    protocol.m_eCommand = CMD_REQUEST_METRICS;
+
+    char buffer[PROTOCOL_MSG_LEN];
+    serialize(&protocol, buffer);
+
+    Wire.beginTransmission(I2C_ADDRESS);
+    Wire.write(buffer, PROTOCOL_MSG_LEN);
+    Wire.endTransmission();
+}
+
 void receiveData(int byteCount)
 {
-    // Чтение данных, если они доступны
-    while (Wire.available()) 
+    while (Wire.available())
     {
-        // Считываем 1 байт данных и сохраняем его в переменной receivedDistance
-        receivedDistance = Wire.read();  
+        int receivedDistance = Wire.read();
+        printf("Distance: %dcm\n", receivedDistance);
     }
 }
