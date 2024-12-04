@@ -1,67 +1,99 @@
-#include <PID_v1_bc.h>
-#include <Wire.h>
-#include <LiquidCrystal_I2C.h>
+#include <Arduino.h>
 
-#include "drivers/motor.h"
+#include "drivers/button.h"
 #include "stdio/serial.h"
-#include "util/prompts.h"
 
-#define ENA 8
-#define IN1 7
-#define IN2 6
+#define BUTTON_PIN 2
 
-Motor m_Motor(ENA, IN1, IN2);
-LiquidCrystal_I2C m_LCD(0x20, 16, 2);
+enum State
+{
+    STATE_IDLE,
+    STATE_SHORT_PRESS,
+    STATE_LONG_PRESS,
+    STATE_RELEASED,
+    STATE_DOUBLE_PRESS
+};
 
-double m_iSetPoint, m_iInput, m_iOutput;
-double Kp = 2.0, Ki = 5.0, Kd = 1.0;
+Button m_Button(BUTTON_PIN);
 
-PID myPID(&m_iInput, &Output, &Setpoint, Kp, Ki, Kd, DIRECT);
+State currentState = STATE_IDLE;
+unsigned long lastPressTime = 0;
+unsigned long buttonHoldTime = 0;
+bool lastButtonState = LOW;
+unsigned long doublePressTimeout = 300;
+unsigned long longPressThreshold = 1000;
+unsigned long lastReleaseTime = 0;
 
 void setup()
 {
     stdio_to_serial(9600);
-    stdio_to_lcd(&m_LCD);
-
-    myPID.SetMode(AUTOMATIC);
-    myPID.SetOutputLimits(0, 255);
-
-    m_LCD.init();
-    m_LCD.backlight();
 }
 
 void loop()
 {
-    char buf[32];
-    prompt(NULL, buf, sizeof(buf));
-    int newSetpoint = atoi(buf);
+    bool buttonState = m_Button.down();
 
-    if (newSetpoint >= 0 && newSetpoint <= 255)
+    switch (currentState)
     {
-        m_iSetPoint = newSetpoint;
-        printf("Setpoint: %d\n", m_iSetPoint);
-    }
-    else
-    {
-        printf("Please enter a value between 0 and 255.\n");
+    case STATE_IDLE:
+        if (buttonState)
+        {
+            currentState = STATE_SHORT_PRESS;
+            lastPressTime = millis();
+            printf("STATE_SHORT_PRESS\n");
+        }
+        break;
+
+    case STATE_SHORT_PRESS:
+        if (buttonState)
+        {
+            buttonHoldTime = millis() - lastPressTime;
+            if (buttonHoldTime > longPressThreshold)
+            {
+                currentState = STATE_LONG_PRESS;
+                printf("STATE_LONG_PRESS\n");
+            }
+        }
+        else
+        {
+            lastReleaseTime = millis();
+            if (millis() - lastPressTime < longPressThreshold)
+            {
+                currentState = STATE_RELEASED;
+                printf("STATE_RELEASED\n");
+            }
+        }
+        break;
+
+    case STATE_LONG_PRESS:
+        if (!buttonState)
+        {
+            currentState = STATE_IDLE;
+            printf("STATE_IDLE\n");
+        }
+        break;
+
+    case STATE_RELEASED:
+        if (buttonState && (millis() - lastReleaseTime < doublePressTimeout))
+        {
+            currentState = STATE_DOUBLE_PRESS;
+            printf("STATE_DOUBLE_PRESS\n");
+        }
+        else if (millis() - lastReleaseTime >= doublePressTimeout)
+        {
+            currentState = STATE_IDLE;
+            printf("STATE_IDLE\n");
+        }
+        break;
+
+    case STATE_DOUBLE_PRESS:
+        if (!buttonState)
+        {
+            currentState = STATE_IDLE;
+            printf("STATE_IDLE\n");
+        }
+        break;
     }
 
-    if (m_iInput < m_iSetPoint)
-    {
-        m_iInput += m_iOutput * 0.1;
-        if (m_iInput > m_iSetPoint)
-            m_iInput = m_iSetPoint;
-    }
-    else if (m_iInput > m_iSetPoint)
-    {
-        m_iInput -= m_iOutput * 0.1;
-        if (m_iInput < m_iSetPoint)
-            m_iInput = m_iSetPoint;
-    }
-
-    m_iOutput = myPID.Compute();
-    m_Motor.setSpeed(m_iOutput);
-
-    printf("SetPoint: %d | Current %d", m_iSetPoint, m_iInput);
-    delay(100);
+    delay(10);
 }
