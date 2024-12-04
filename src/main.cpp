@@ -1,18 +1,6 @@
 #include <Arduino.h>
 #include <WiFi.h>
 #include <PubSubClient.h>
-#include <DHT.h>
-#include <Adafruit_Sensor.h>
-
-#include "stdio/serial.h"
-
-#define DHT_PIN 2
-#define DHT_TYPE DHT11
-
-char *SSID = "your_wifi_ssid";
-const char *PWD = "your_wifi-pwd";
-
-DHT m_DHT(DHT_PIN, DHT_TYPE);
 
 long last_time = 0;
 char data[100];
@@ -23,38 +11,30 @@ PubSubClient mqttClient(wifiClient);
 char *mqttServer = "broker.hivemq.com";
 int mqttPort = 1883;
 
-void setup()
-{
-    stdio_to_serial(9600);
-
-    connectToWiFi();
-    m_DHT.begin();
-    setupMQTT();
-}
-
 void connectToWiFi()
 {
-    printf("Connectiog to ");
+    WiFi.begin("Redmi Note 9 Pro", "0987654321");
 
-    WiFi.begin(SSID, PWD);
-    printf(SSID);
+    Serial.write("Connecting to ");
+    Serial.write("Redmi Note 9 Pro");
+
 
     while (WiFi.status() != WL_CONNECTED)
     {
-        printf(".");
+        Serial.write(".");
         delay(500);
     }
 
-    printf("Connected.");
+    Serial.write("Connected\n");
 }
 
 void callback(char *topic, byte *payload, unsigned int length)
 {
-    printf("Callback - ");
-    printf("Message:");
+    Serial.write("Callback - ");
+    Serial.write("Message:");
     for (int i = 0; i < length; i++)
     {
-        printf("%c", payload[i]);
+        Serial.write("%c", payload[i]);
     }
 }
 
@@ -66,19 +46,26 @@ void setupMQTT()
 
 void reconnect()
 {
-    printf("Connecting to MQTT Broker...");
+    Serial.write("Connecting to MQTT Broker...");
     while (!mqttClient.connected())
     {
-        printf("Reconnecting to MQTT Broker..");
+        Serial.write("Reconnecting to MQTT Broker..");
         String clientId = "ESP32Client-";
         clientId += String(random(0xffff), HEX);
 
         if (mqttClient.connect(clientId.c_str()))
         {
-            printf("Connected.");
+            Serial.write("Connected.");
             mqttClient.subscribe("/swa/commands");
         }
     }
+}
+
+void setup()
+{
+    Serial.begin(9600);
+    connectToWiFi();
+    setupMQTT();
 }
 
 void loop()
@@ -91,14 +78,14 @@ void loop()
     long now = millis();
     if (now - last_time > 60000)
     {
-        float temp = m_DHT.readTemperature();
-        float hum = m_DHT.readHumidity();
+        float temp = 27.0;
+        float hum = 70;
 
         sprintf(data, "%f", temp);
-        printf("%d", data);
+        Serial.write(data);
         mqttClient.publish("/swa/temperature", data);
         sprintf(data, "%f", hum);
-        printf("%d", hum);
+        Serial.write("%.2f", hum);
         mqttClient.publish("/swa/humidity", data);
         last_time = now;
     }
